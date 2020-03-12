@@ -1,5 +1,6 @@
 import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
 import * as p5 from 'p5';
+import {ActivatedRoute} from '@angular/router';
 @Component({
   selector: 'app-fourier-series',
   templateUrl: './fourier-series.component.html',
@@ -17,7 +18,7 @@ export class FourierSeriesComponent implements OnInit {
 
   @Input() speed: number;
 
-  constructor() {
+  constructor(private route: ActivatedRoute) {
     this.Y = [];
     this.time = 0;
     this.numCircle = 3;

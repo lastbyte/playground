@@ -9,7 +9,7 @@ export const router: Routes = [
   { path: 'home-page', component: HomePageComponent },
   { path: 'fourier-series', component: FourierSeriesComponent },
   { path: 'dijkstra-shortest-path', component: DijkstrasComponent },
-  { path: '', redirectTo: '/home-page', pathMatch: 'full' },
+  { path: '', redirectTo: 'home-page', pathMatch: 'full' },
   { path: '**', component: PageNotFoundComponent }
 ];
 
