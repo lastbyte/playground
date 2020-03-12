@@ -1,0 +1,37 @@
+<app-header></app-header>
+<div class="container" id="simulator">
+  <div class="row">
+    <div id="control" class="col-lg-4">
+      <div class="form" id="dijkstra" submit>
+        <form >
+          <label for="block">Block size : {{gridWidth}}</label>
+          <input #block type="range" class="form-control custom-range" min="20" max="40" id="block" [value]="gridWidth" (change)="updateGridWidth(block.value)" >
+
+          <label for="map">Map size : {{gridSize}}</label>
+          <input #map type="range" class="form-control custom-range" min="20" max="40" id="map" [value]="gridSize" (change)="updateGridSize(map.value)" >
+
+        </form>
+
+        <form class="">
+          <label for="map">edge (start node , end node, weight) </label>
+          <input #start class="form-control" >
+
+          <a class="btn btn-info" (click)="addEdge(start.value)"> add edge</a>
+
+        </form>
+
+        <form>
+          <label for="map">source vertex </label>
+          <input #source  class="form-control" (change)="setSoucreAndDestiNation(source.value, null )">
+
+          <label for="map">destination vertex </label>
+          <input #destination class="form-control" (change)="setSoucreAndDestiNation(null, destination.value )">
+          <a class="btn btn-info" (click)="calculatePath()"> calculate Path</a>
+        </form>
+
+      </div>
+    </div>
+    <div #canvas id="canvas" class="col-lg-8" (click)="addNode()"></div>
+  </div>
+</div>
+

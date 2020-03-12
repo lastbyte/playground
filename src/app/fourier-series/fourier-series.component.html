@@ -1,0 +1,14 @@
+<app-header></app-header>
+<div class="container" id="simulator">
+  <div class="row">
+    <div id="control" class="col-lg-4">
+      <form class="form" id="fourier" submit>
+        <label for="numCircle">Number of circle : {{numCircle}}</label>
+        <input #circle type="range" class="custom-range" min="0" max="20" id="numCircle" [value]="numCircle" (change)="updateNumCircle(circle.value)">
+        <label for="speed">Speed : {{speed}}</label>
+        <input #acc type="range" class="custom-range" min="1" max="10" id="speed" [value]="2" (change)="updateSpeed(acc.value)" >
+      </form>
+    </div>
+    <div #canvas id="canvas" class="col-lg-8"></div>
+  </div>
+</div>
