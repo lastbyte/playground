@@ -551,9 +551,6 @@ DAMAGES.
                      END OF TERMS AND CONDITIONS
 
 
-priorityqueue
-MIT
-
 regenerator-runtime
 MIT
 MIT License
