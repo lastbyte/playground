@@ -1,14 +1,14 @@
 <div class="container" id="simulator">
   <div class="row">
     <div id="control" class="col-lg-4">
-      <div class="form" id="dijkstra" submit>
+      <div class="form" id="prims" submit>
         <form >
           <label for="block">Block size : {{gridWidth}}</label>
           <input #block type="range" class="form-control custom-range" min="20" max="40" id="block" [value]="gridWidth" (change)="updateGridWidth(block.value)" >
 
           <label for="map">Map size : {{gridSize}}</label>
           <input #map type="range" class="form-control custom-range" min="20" max="40" id="map" [value]="gridSize" (change)="updateGridSize(map.value)" >
-          <a class="btn btn-info" (click)="testDijkstra()"> load test Graph</a>
+          <a class="btn btn-info" (click)="testPrim()"> Load test graph</a>
         </form>
 
         <form class="">
@@ -20,12 +20,7 @@
         </form>
 
         <form>
-          <label for="map">source vertex </label>
-          <input #source  class="form-control" (change)="setSoucreAndDestiNation(source.value, null )">
-
-          <label for="map">destination vertex </label>
-          <input #destination class="form-control" (change)="setSoucreAndDestiNation(null, destination.value )">
-          <a class="btn btn-info" (click)="calculatePath()"> calculate Path</a>
+          <a class="btn btn-info" (click)="calculateMST()"> calculate Path</a>
         </form>
 
       </div>

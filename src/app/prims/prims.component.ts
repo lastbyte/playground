@@ -1,40 +1,21 @@
-import {Component, OnInit, ViewChild, ElementRef} from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import * as p5 from 'p5';
 import {Edge} from '../models/Edge';
 import {Node} from '../models/Node';
-import PriorityQueue from 'priorityqueue';
 
 @Component({
-  selector: 'app-dijkstras',
-  templateUrl: './dijkstras.component.html',
-  styleUrls: ['./dijkstras.component.css']
+  selector: 'app-prims',
+  templateUrl: './prims.component.html',
+  styleUrls: ['./prims.component.css']
 })
-export class DijkstrasComponent implements OnInit {
-  get endNode(): number {
-    return this._endNode;
-  }
+export class PrimsComponent implements OnInit {
 
-  set endNode(value: number) {
-    this._endNode = value;
-  }
-  get startNode(): number {
-    return this._startNode;
-  }
-
-  set startNode(value) {
-    this._startNode = value;
-  }
   private canvas: p5;
   private edges: Map<number, Edge[]>;
-  private path: Map<number, number>;
+  private minimumSpanningTree: Edge[];
   public nodes: Node[];
   public gridSize: number;
   public gridWidth: number;
-  // tslint:disable-next-line:variable-name
-  private _startNode: number;
-  // tslint:disable-next-line:variable-name
-  private _endNode: number;
-  private prev;
 
   backgroud = 200;
   gridColor = 255;
@@ -46,11 +27,10 @@ export class DijkstrasComponent implements OnInit {
 
   constructor() {
     this.nodes = [];
-    this.path = new Map<number, number>();
+    this.minimumSpanningTree = []
     this.edges = new Map<number, Edge[]>();
     this.gridWidth = 20;
     this.gridSize = 30;
-    this.prev = {};
   }
 
   private drawGrid  = (s: any, size, width) =>  {
@@ -102,16 +82,12 @@ export class DijkstrasComponent implements OnInit {
     this.canvas.line(startNode.x, startNode.y, endNode.x, endNode.y);
   }
 
-  private drawPath(prev: {}, source: Node, destination: Node) {
-    let prevNode = prev[destination.id];
-    let currNode = destination;
-    while ( prevNode !== null) {
-          this.canvas.stroke(this.visitedEdge);
-          this.canvas.strokeWeight(5);
-          this.canvas.line(currNode.x, currNode.y , prevNode.x, prevNode.y);
-          currNode = prevNode;
-          prevNode = prev[currNode.id];
-    }
+  private drawPath(edges: Edge[]) {
+    edges.forEach( edge => {
+      this.canvas.stroke(this.visitedEdge);
+      this.canvas.strokeWeight(5);
+      this.canvas.line(edge.start.x, edge.start.y, edge.end.x, edge.end.y );
+    });
   }
 
   ngOnInit(): void {
@@ -120,16 +96,12 @@ export class DijkstrasComponent implements OnInit {
         const canvas = s.createCanvas(this.canvasHolder.nativeElement.offsetWidth, this.canvasHolder.nativeElement.offsetHeight);
         canvas.parent('canvas');
         this.drawGrid(s, this.gridSize, this.gridWidth);
-        this.drawEdges(s);
         this.drawPoints(s);
+        this.drawEdges(s);
+        s.noLoop();
       };
       s.draw = () => {
       };
-
-      s.mouseClicked = () => {
-
-      };
-
     };
     this.canvas = new p5(sketch);
   }
@@ -151,23 +123,13 @@ export class DijkstrasComponent implements OnInit {
     const weight = Number(vals[2]);
     console.log('clicked');
     const edge: Edge = new Edge(this.nodes[start], this.nodes[end], weight);
-    const invertEdge: Edge = new Edge(this.nodes[end], this.nodes[start], weight);
-    this.extracted(start, edge);
-    this.extracted(end, invertEdge);
+    const oppEdge: Edge = new Edge(this.nodes[end], this.nodes[start], weight);
+    this._addEdge(start, edge);
+    this._addEdge(end, oppEdge);
     this.canvas.setup();
   }
 
-  addNode() {
-    console.log('mouse clicked');
-    const x = this.canvas.mouseX;
-    const y = this.canvas.mouseY;
-    console.log('x : ' + x + ' y : ' + y);
-    const node = new Node(x, y, this.nodes.length);
-    this.nodes.push(node);
-    this.canvas.setup();
-  }
-
-  private extracted(start, edge: Edge) {
+  private _addEdge(start, edge: Edge) {
     let exists = false;
     if (this.edges.get(start) == null) {
       this.edges.set(start, [edge]);
@@ -187,77 +149,96 @@ export class DijkstrasComponent implements OnInit {
     }
   }
 
-  calculatePath() {
-    const startNode = this.nodes[this._startNode];
-    const endNode = this.nodes[this._endNode];
-    this.dijkstraAlgorithm(startNode, endNode);
-    this.drawPath(this.prev, startNode, endNode);
+  addNode() {
+    console.log('mouse clicked');
+    const x = this.canvas.mouseX;
+    const y = this.canvas.mouseY;
+    console.log('x : ' + x + ' y : ' + y);
+    const node = new Node(x, y, this.nodes.length);
+    this.nodes.push(node);
+    this.canvas.setup();
   }
-  dijkstraAlgorithm(startNode, endNode) {
-    const distances = {};
-    this.path.clear();
-    const comparator = (a: Node, b: Node) => (a.distanceFromStart < b.distanceFromStart ? 1 : 0);
 
-    // Stores the reference to previous nodes
-    const pq = []
+  calculateMST() {
+    this.minimumSpanningTree = [];
+    this.primsMST();
+    this.drawPath(this.minimumSpanningTree);
+  }
+  primsMST() {
 
-    // Set distances to all nodes to be infinite except startNode
-    distances[startNode.id] = 0;
-    pq.push(startNode);
-    this.nodes.forEach(node => {
-      if (node !== startNode) { distances[node.id] = Infinity; }
-      this.prev[this.nodes.indexOf(node)] = null;
+    const edgesQueue = [];
+
+    const visitedVertices = {};
+
+    this.nodes.forEach( node => {
+      visitedVertices[node.id] = false;
     });
-    while (pq.length > 0) {
-      const minNode = pq.pop();
-      const currNode = minNode;
-      const weight = minNode.distanceFromStart;
-      const outGoingEdges = this.edges.get(currNode.id);
-      if (outGoingEdges != null && outGoingEdges.length > 0) {
-      outGoingEdges.forEach(edge => {
-          const alt = distances[currNode.id] + edge.weight;
-          if (alt < distances[edge.end.id]) {
-            distances[edge.end.id] = alt;
-            edge.end.distanceFromStart = alt;
-            this.prev[edge.end.id] = currNode;
-            pq.push(edge.end);
-          }
-      });
+
+
+    const startVertex: Node = this.nodes[0];
+
+    visitedVertices[startVertex.id] = true;
+
+    this.edges.get(startVertex.id).forEach( edge => {
+      edgesQueue.push(edge);
+    });
+
+    let minEdgeIndex = this.getMinIndex(edgesQueue, visitedVertices);
+    let tmp = edgesQueue[minEdgeIndex];
+    edgesQueue[minEdgeIndex] = edgesQueue[edgesQueue.length - 1]
+    edgesQueue[edgesQueue.length - 1] = tmp ;
+
+    // Now let's explore all queued edges.
+    while (this.minimumSpanningTree.length < this.nodes.length - 1) {
+      const currentMinEdge = edgesQueue.pop();
+
+      // Find out the next unvisited minimal vertex to traverse.
+      let nextMinVertex = null;
+      if (!visitedVertices[currentMinEdge.start.id]) {
+        nextMinVertex = currentMinEdge.start;
+      } else if (!visitedVertices[currentMinEdge.end.id]) {
+        nextMinVertex = currentMinEdge.end;
       }
-      const minEdgeIndex = this.getMinIndex(pq)
-      const tmp = pq[minEdgeIndex];
-      pq[minEdgeIndex] = pq[pq.length - 1]
-      pq[pq.length - 1] = tmp ;
+
+      // If all vertices of current edge has been already visited then skip this round.
+      if (nextMinVertex) {
+        // Add current min edge to MST.
+        this.minimumSpanningTree.push(currentMinEdge);
+        visitedVertices[nextMinVertex.id] = true;
+        // Add all current vertex's edges to the queue.
+        if (this.edges.get(nextMinVertex.id) != null && this.edges.get(nextMinVertex.id).length > 0) {
+          this.edges.get(nextMinVertex.id).forEach(edge => {
+            if (!visitedVertices[edge.start.id] || !visitedVertices[edge.end.id]) {
+              edgesQueue.push(edge);
+            }
+          });
+        }
+        // Add vertex to the set of visited ones.
+        minEdgeIndex = this.getMinIndex(edgesQueue, visitedVertices);
+        tmp = edgesQueue[minEdgeIndex];
+        edgesQueue[minEdgeIndex] = edgesQueue[edgesQueue.length - 1]
+        edgesQueue[edgesQueue.length - 1] = tmp ;
+      }
     }
-    console.log(distances);
-    console.log(this.prev);
-    return distances;
   }
 
-  public setSoucreAndDestiNation(source, destination ) {
-    if (source !== null) {
-      this._startNode = Number(source);
-    }
-    if (destination !== null) {
-      this._endNode = Number(destination);
-    }
-  }
-
-  private getMinIndex(vierticesQueue: any[]) {
+  private getMinIndex(edgesQueue: any[], visitedVertices) {
     let minIndex = -1;
     let min = Infinity;
 
-    vierticesQueue.forEach( v => {
-      if (v.distanceFromStart < min) {
-        min = v.distanceFromStart;
-        minIndex = vierticesQueue.indexOf(v);
+    edgesQueue.forEach( e => {
+      if ( (!visitedVertices[e.start.id] || !visitedVertices[e.end.id]) && (e.weight < min) ) {
+        min = e.weight;
+        minIndex = edgesQueue.indexOf(e);
       }
     });
 
     return minIndex;
   }
 
-  testDijkstra() {
+
+
+  testPrim() {
     this.nodes.push(new Node(50, 200, 0));
     this.nodes.push(new Node(150, 100, 1));
     this.nodes.push(new Node(250, 100, 2));
@@ -285,5 +266,4 @@ export class DijkstrasComponent implements OnInit {
 
     this.canvas.setup();
   }
-
 }

@@ -10,6 +10,9 @@ import { FourierSeriesComponent } from './fourier-series/fourier-series.componen
 import { DijkstrasComponent } from './dijkstras/dijkstras.component';
 import { HeaderComponent } from './header/header.component';
 import {FormsModule} from '@angular/forms';
+import { PrimeNumberComponent } from './prime-number/prime-number.component';
+import { PrimsComponent } from './prims/prims.component';
+import { KruskalComponent } from './kruskal/kruskal.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +21,10 @@ import {FormsModule} from '@angular/forms';
     PageNotFoundComponent,
     FourierSeriesComponent,
     DijkstrasComponent,
-    HeaderComponent
+    HeaderComponent,
+    PrimeNumberComponent,
+    PrimsComponent,
+    KruskalComponent
   ],
   imports: [
     BrowserModule,

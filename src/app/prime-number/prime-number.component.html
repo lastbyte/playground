@@ -1,0 +1,19 @@
+<div class="container" id="simulator">
+  <div class="row">
+    <div id="control" class="col-lg-4">
+      <form class="form" id="fourier" submit>
+        <label for="num">Max number : </label>
+        <input #num type="number" class="form-control" id="num" [value]="num.value" (change)="updateMaxNumber(num.value)">
+        <label for="zoom">zoom : </label>
+        <input #zoom type="range" class="form-control custom-range" min="1" max="1000" id="zoom" [value]="zoom.value" (change)="updateScalingFactor(zoom.value)" >
+        <br>
+        <label for="prime">Only Primes </label>
+        <input #prime id="prime" class="form-control" (change)="updateIncludeComposite(prime.value)">
+
+        <br>
+        <a class="btn btn-info" (click)="visualize()">visualize</a>
+      </form>
+    </div>
+    <div #canvas id="canvas" class="col-lg-8"></div>
+  </div>
+</div>
